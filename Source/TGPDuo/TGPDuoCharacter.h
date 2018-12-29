@@ -8,42 +8,51 @@
 
 class UInputComponent;
 
-UCLASS(config=Game)
+UCLASS(config = Game)
 class ATGPDuoCharacter : public ACharacter
 {
 	GENERATED_BODY()
 
-	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category=Mesh)
-	class USkeletalMeshComponent* Mesh1P;
+		/** Pawn mesh: 1st person view (arms; seen only by self) */
+		UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+		class USkeletalMeshComponent* Mesh1P;
 
 	/** Gun mesh: 1st person view (seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USkeletalMeshComponent* FP_Gun;
+		class USkeletalMeshComponent* FP_Gun;
 
 	/** Location on gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USceneComponent* FP_MuzzleLocation;
+		class USceneComponent* FP_MuzzleLocation;
 
 	/** Gun mesh: VR view (attached to the VR controller directly, no arm, just the actual gun) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USkeletalMeshComponent* VR_Gun;
+		class USkeletalMeshComponent* VR_Gun;
 
 	/** Location on VR gun mesh where projectiles should spawn. */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	class USceneComponent* VR_MuzzleLocation;
+		class USceneComponent* VR_MuzzleLocation;
 
 	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FirstPersonCameraComponent;
+		class UCameraComponent* FirstPersonCameraComponent;
 
 	/** Motion controller (right hand) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UMotionControllerComponent* R_MotionController;
+		class UMotionControllerComponent* R_MotionController;
 
 	/** Motion controller (left hand) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	class UMotionControllerComponent* L_MotionController;
+		class UMotionControllerComponent* L_MotionController;
+
+	class APlayerInventory* Inventory;
+
+	class APlaceable * GhostPlaceable;
+
+	class AWorldManager * WorldManager;
+
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	//class InventoryItem* Equipped;
 
 public:
 	ATGPDuoCharacter();
@@ -51,39 +60,51 @@ public:
 protected:
 	virtual void BeginPlay();
 
+	void GetWorldManager();
+
 public:
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseTurnRate;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float BaseTurnRate;
 
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
-	float BaseLookUpRate;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+		float BaseLookUpRate;
 
 	/** Gun muzzle's offset from the characters location */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	FVector GunOffset;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		FVector GunOffset;
+
 
 	/** Projectile class to spawn */
-	UPROPERTY(EditDefaultsOnly, Category=Projectile)
-	TSubclassOf<class ATGPDuoProjectile> ProjectileClass;
+	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+		TSubclassOf<class ATGPDuoProjectile> ProjectileClass;
 
 	/** Sound to play each time we fire */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
-	class USoundBase* FireSound;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+		class USoundBase* FireSound;
 
 	/** AnimMontage to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	class UAnimMontage* FireAnimation;
+		class UAnimMontage* FireAnimation;
 
 	/** Whether to use motion controller location for aiming. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	uint32 bUsingMotionControllers : 1;
+		uint32 bUsingMotionControllers : 1;
+
 
 protected:
-	
+
 	/** Fires a projectile. */
 	void OnFire();
+
+	UFUNCTION(BlueprintCallable)
+		void OnScroll(float AxisValue);
+
+	void UpdateInventorySlot();
+
+	/** Brings up context menu */
+	void OnContextMenu();
 
 	/** Resets HMD orientation and position in VR. */
 	void OnResetVR();
@@ -106,37 +127,38 @@ protected:
 	 */
 	void LookUpAtRate(float Rate);
 
-	struct TouchData
-	{
-		TouchData() { bIsPressed = false;Location=FVector::ZeroVector;}
-		bool bIsPressed;
-		ETouchIndex::Type FingerIndex;
-		FVector Location;
-		bool bMoved;
-	};
-	void BeginTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
-	void EndTouch(const ETouchIndex::Type FingerIndex, const FVector Location);
-	void TouchUpdate(const ETouchIndex::Type FingerIndex, const FVector Location);
-	TouchData	TouchItem;
-	
-protected:
+	void OnTick();
+
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
 
-	/* 
-	 * Configures input for touchscreen devices if there is a valid touch interface for doing so 
-	 *
-	 * @param	InputComponent	The input component pointer to bind controls to
-	 * @returns true if touch controls were enabled.
-	 */
-	bool EnableTouchscreenMovement(UInputComponent* InputComponent);
+
+	int InventoryItemRotation = 0; //0 to 3
+	float RotationAnimation = 0; //wants to be 0
+	bool rotating = false;
+
+	void RotateClockWise();
+
+	void RotateCounterClockWise();
 
 public:
 	/** Returns Mesh1P subobject **/
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
 	FORCEINLINE class UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+
+	virtual void Tick(float DeltaTime) override;
+
+	bool LookScan(FVector &CursorPosition);
+
+	bool LookScanForObject(AActor *& Object, FVector &CursorPosition, FVector &ObjectLocalHit);
+
+	void UpdateEquipped();
+
+
+
+
 
 };
 
