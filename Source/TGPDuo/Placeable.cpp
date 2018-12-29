@@ -47,3 +47,4 @@ void APlaceable::Update(float DeltaTime)
 
 
 //TODO: make meshes transparent when in placement mode?
+// Semi-Transparent would be cool
