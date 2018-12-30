@@ -13,13 +13,11 @@ AWorldManager::AWorldManager()
 	Width = 20;
 	Height = 20;
 	GridSize = 100;
-	GenerateWorld(false, Width, Height);
 
 
 
 	//CREATE LIST OF PLACEABLE STUFF HERE, Should be loaded from external file at some point probably.
-	SpawnableInformation.Push(new SpawnableInfo(0, FString("Blueprint'/Game/Game/Placeables/Conveyor/BP_Conveyor.BP_Conveyor_C'"),	FVector2D(1, 1)));
-	SpawnableInformation.Push(new SpawnableInfo(1, FString("Blueprint'/Game/Game/Placeables/Assembler/BP_Assembler.BP_Assembler_C'"), FVector2D(3, 3)));
+	//Moved the list into its own class inside of SpawnableInfo.h for accessibility
 
 }
 
@@ -27,6 +25,8 @@ AWorldManager::AWorldManager()
 void AWorldManager::BeginPlay()
 {
 	Super::BeginPlay();
+	GenerateWorld(false, Width, Height);
+
 }
 
 // Called every frame
@@ -60,6 +60,7 @@ bool AWorldManager::GetCell(WorldCell *& Cell, int x, int y)
 
 void AWorldManager::GenerateWorld(bool Populate, int width, int height)
 {
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Blue, TEXT("World Generating"));
 
 	Width = width;
 	Height = height;

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-
+#include "SpawnableInfo.h"
 
 #include "PlayerInventory.generated.h"
 
@@ -18,17 +18,12 @@ public:
 	// Sets default values for this actor's properties
 	APlayerInventory();
 
-	
-
-	
-	
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	TArray<class AInventoryItem*> Contents;
+	TArray<SpawnableInfo*> Contents;
 	uint32 ActiveInventorySlot;
 	bool UsingItem;
 
@@ -43,5 +38,7 @@ public:
 	bool IsUsingItem();
 
 	bool Scroll(int Amount);
-	
+	SpawnableInfo* GetItemInSlot(uint32 _Slot) {	return Contents[_Slot]; };
+	void GiveItem(SpawnableInfo* _Item);
+
 };

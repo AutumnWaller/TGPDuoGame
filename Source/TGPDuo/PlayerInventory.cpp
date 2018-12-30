@@ -9,6 +9,7 @@ APlayerInventory::APlayerInventory()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	ActiveInventorySlot = 0; //0 to 9
+	Contents.SetNum(10, false);
 	UsingItem = false;
 }
 
@@ -16,7 +17,7 @@ APlayerInventory::APlayerInventory()
 void APlayerInventory::BeginPlay()
 {
 	Super::BeginPlay();
-
+	GiveItem(Spawnables::GetSpawnable(0));
 }
 
 // Called every frame
@@ -55,5 +56,16 @@ bool APlayerInventory::Scroll(int Amount) {
 		}
 	}
 	return false;
+}
+
+void APlayerInventory::GiveItem(SpawnableInfo* _Item)
+{
+	for (int i = 0; i < 9; i++) {
+		if (!GetItemInSlot(i)) {
+			Contents[i] = _Item;
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, Contents[i]->ItemName);
+			return;
+		}
+	}
 }
 

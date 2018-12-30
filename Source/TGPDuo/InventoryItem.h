@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "SpawnableInfo.h"
 #include "InventoryItem.generated.h"
 
 UCLASS()
@@ -12,9 +13,7 @@ class TGPDUO_API AInventoryItem : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	AInventoryItem();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
