@@ -47,7 +47,10 @@ bool APlayerInventory::Scroll(int Amount) {
 		int currentSlot = ActiveInventorySlot;
 		int newvalue = ActiveInventorySlot + Amount;
 		ActiveInventorySlot = FMath::Clamp(newvalue, 0, 9);
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(currentSlot));
+
 		if (currentSlot != ActiveInventorySlot) {
+
 			return true;
 		}
 		else
@@ -63,7 +66,6 @@ void APlayerInventory::GiveItem(SpawnableInfo* _Item)
 	for (int i = 0; i < 9; i++) {
 		if (!GetItemInSlot(i)) {
 			Contents[i] = _Item;
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Purple, Contents[i]->ItemName);
 			return;
 		}
 	}

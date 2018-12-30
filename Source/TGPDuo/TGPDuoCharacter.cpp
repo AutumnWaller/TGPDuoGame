@@ -647,7 +647,7 @@ bool ATGPDuoCharacter::LookScanForObject(AActor *& Object, FVector &CursorPositi
 				return true;
 			}
 			else {
-				GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("No valid Actors hit"));
+				//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("No valid Actors hit"));
 			}
 		}
 		else {

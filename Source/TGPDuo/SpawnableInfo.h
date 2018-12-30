@@ -24,6 +24,7 @@ public:
 
 static class TGPDUO_API Spawnables {
 public:
+	//Moved here so it's accessible anywhere and all together
 	static TArray<SpawnableInfo> AvailableSpawnables;
 
 	static SpawnableInfo* GetSpawnable(int _ID) { return new SpawnableInfo(AvailableSpawnables[_ID]); };

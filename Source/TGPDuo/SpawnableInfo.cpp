@@ -6,10 +6,10 @@ SpawnableInfo::SpawnableInfo(int _ID, FString _ItemName, FString _BPN, FVector2D
 {
 	ID = _ID;
 	ItemName = _ItemName;
+	ImagePath = "Texture2D'/Game/UI/Icons/test.test'";
 	BluePrintName = _BPN;
 	Size = _S;
 	MaxStackSize = _MaxStackSize;
-
 }
 
 

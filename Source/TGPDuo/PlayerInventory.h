@@ -8,26 +8,25 @@
 
 #include "PlayerInventory.generated.h"
 
-
 UCLASS()
 class TGPDUO_API APlayerInventory : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
-	APlayerInventory();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
-	TArray<SpawnableInfo*> Contents;
 	uint32 ActiveInventorySlot;
 	bool UsingItem;
 
 public:	
+	TArray<SpawnableInfo*> Contents;
+
+	APlayerInventory();
+
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
