@@ -43,7 +43,8 @@ public:
 
 private:
 	TArray<TArray<WorldCell*>> levelMap;
-	void GenerateWorld(bool Populate, int width, int height);
+	UFUNCTION(BlueprintCallable)
+		void GenerateWorld(bool Populate, int width, int height);
 
 
 

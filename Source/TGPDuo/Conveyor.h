@@ -12,21 +12,55 @@
 /**
  * 
  */
+
+UENUM(BlueprintType)
+enum class ConveyorType : uint8 {
+	SLOW,
+	MEDIUM,
+	FAST
+};
+UENUM(BlueprintType)
+enum class ConveyorAngle : uint8 {
+	STRAIGHT,
+	LEFT,
+	RIGHT
+};
+
+UENUM(BlueprintType)
+enum class ConveyorJoin : uint8 {
+	SINGLE,
+	START,
+	MIDDLE,
+	END
+};
+
 UCLASS()
 class TGPDUO_API AConveyor : public APlaceable
 {
 	GENERATED_BODY()
 private:
 	float Speed = 80;
+	UMeshComponent *DefaultComponent;
+	UBoxComponent *MovementBox;
+	ConveyorType Type = ConveyorType::SLOW;
+	ConveyorAngle Angle = ConveyorAngle::STRAIGHT;
+	ConveyorJoin Join = ConveyorJoin::SINGLE;
 public:
-	int ConveyorType;
-	int ConveyorAngle;
-	int ConveyorJoin;
+
 	AConveyor();
 
 	virtual void Update(float DeltaTime) override;
-	virtual void Tick(float DeltaTime) override;
+
 	void Push(float DeltaTime);
-	float GetSpeed() { return Speed; };
-	void SetSpeed(float _Speed);
+	
+	void SetType(ConveyorType _Type);
+	void SetAngle(ConveyorAngle _Angle);
+	void SetJoin(ConveyorJoin _Join);
+	void Set(ConveyorType _Type = ConveyorType::SLOW, ConveyorAngle _Angle = ConveyorAngle::STRAIGHT, ConveyorJoin _Join = ConveyorJoin::SINGLE);
+	UFUNCTION(BlueprintCallable)
+	ConveyorType GetType() { return Type; }
+	UFUNCTION(BlueprintCallable)
+	ConveyorAngle GetAngle() { return Angle; }
+	UFUNCTION(BlueprintCallable)
+	ConveyorJoin GetJoin() { return Join; }
 };

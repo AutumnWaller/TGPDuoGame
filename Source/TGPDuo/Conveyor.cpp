@@ -2,61 +2,74 @@
 
 #include "Conveyor.h"
 
-UPROPERTY(EditAnywhere, Category = "Mesh")
-	UMeshComponent *DefaultComponent;
-UPROPERTY(BlueprintReadWrite, Category = "Collision")
-	UBoxComponent *MovementBox;
+
 
 AConveyor::AConveyor()
 {
-	ConveyorType = 0; //slow/medium/fast
-	ConveyorAngle = 0; //straight, left, right.
-	ConveyorJoin = 0; //single, start, middle, end
 	Size = FVector(1, 1, 0);
 
 
 
 	DefaultComponent = CreateDefaultSubobject<UMeshComponent>(TEXT("RootComponent"));
-
-	
-	RootComponent = DefaultComponent;
 	DefaultComponent->RegisterComponent();
-
+	RootComponent = DefaultComponent;
 	MovementBox = CreateDefaultSubobject<UBoxComponent>(TEXT("MovementBox"));
-
-	//Maybe an issue with the naming?
-
+	MovementBox->SetupAttachment(DefaultComponent);
 	MovementBox->SetRelativeLocation(FVector(0, 0, 50));
 	MovementBox->SetWorldRotation(FQuat(0, 0, -90, 0));
-	MovementBox->SetRelativeScale3D(FVector(1.75f, 1.5f, 0.75f));
+	MovementBox->SetRelativeScale3D(FVector(1.5f, 1.5f, 0.75f));
 	MovementBox->RegisterComponent();
 }
 
 void AConveyor::Update(float DeltaTime) {
-	//Push(DeltaTime);
+	APlaceable::Update(DeltaTime);
+	Push(DeltaTime);
 }
-
-void AConveyor::Tick(float DeltaTime)
-{
-	Push(DeltaTime); 
-}
-
 void AConveyor::Push(float DeltaTime)
 {
 	TArray<AActor*> actorArr;
-	MovementBox->GetOverlappingActors(actorArr, TSubclassOf<ACharacter>());
+	this->MovementBox->GetOverlappingActors(actorArr, TSubclassOf<ACharacter>());
 
 	for(int i = 0; i < actorArr.Num(); i++)
 	{
 		actorArr[i]->AddActorWorldOffset(GetActorForwardVector() * Speed * DeltaTime);
 	}
-	//TODO: Make box overlap the mesh so that things will fall off at the end
-	//Bug - Only one conveyor works at a time
 }
 
-void AConveyor::SetSpeed(float _Speed)
+void AConveyor::SetType(ConveyorType _Type)
 {
-	Speed = _Speed;
+	Type = _Type;
+	switch (Type) {
+	case ConveyorType::SLOW:
+			Speed = 80;
+			break;
+	case ConveyorType::MEDIUM:
+			Speed = 140;
+			break;
+	case ConveyorType::FAST:
+			Speed = 300;
+			break;
+	default:
+		Speed = 0;
+		break;
+	}
+}
+
+void AConveyor::SetAngle(ConveyorAngle _Angle)
+{
+	Angle = _Angle;
+}
+
+void AConveyor::SetJoin(ConveyorJoin _Join)
+{
+	Join = _Join;
+}
+
+void AConveyor::Set(ConveyorType _Type, ConveyorAngle _Angle, ConveyorJoin _Join)
+{
+	Type = _Type;
+	Angle = _Angle;
+	Join = _Join;
 }
 
 //TODO: make conveyor change its active meshes based on its type, angle and neighbouring blocks
