@@ -27,6 +27,6 @@ SpawnableInfo * Spawnables::GetSpawnable(FString _Name)
 }
 
 TArray<SpawnableInfo> Spawnables::AvailableSpawnables = {
-	{SpawnableInfo(0, "Conveyor", "Blueprint'/Game/Game/Placeables/Conveyor/BP_Conveyor.BP_Conveyor'", FVector2D(1, 1), 99)},
+	{ SpawnableInfo(0, "Conveyor", "Blueprint'/Game/Game/Placeables/Conveyor/BP_Conveyor.BP_Conveyor'", FVector2D(1, 1), 99)},
 	{ SpawnableInfo(1, "Assembler", "Blueprint'/Game/Game/Placeables/Assembler/BP_Assembler.BP_Assembler_C'", FVector2D(3, 3), 99) }
 };

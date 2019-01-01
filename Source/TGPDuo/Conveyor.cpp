@@ -12,7 +12,6 @@ AConveyor::AConveyor()
 
 	DefaultComponent = CreateDefaultSubobject<UMeshComponent>(TEXT("RootComponent"));
 	DefaultComponent->RegisterComponent();
-	RootComponent = DefaultComponent;
 	MovementBox = CreateDefaultSubobject<UBoxComponent>(TEXT("MovementBox"));
 	MovementBox->SetupAttachment(DefaultComponent);
 	MovementBox->SetRelativeLocation(FVector(0, 0, 50));

@@ -20,10 +20,9 @@ protected:
 private:
 	uint32 ActiveInventorySlot;
 	bool UsingItem;
-
+	const int MaxInventorySlots = 12;
 public:	
 	TArray<SpawnableInfo*> Contents;
-
 	APlayerInventory();
 
 

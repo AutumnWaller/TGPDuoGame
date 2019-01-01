@@ -8,8 +8,8 @@ APlayerInventory::APlayerInventory()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	ActiveInventorySlot = 0; //0 to 9
-	Contents.SetNum(10, false);
+	ActiveInventorySlot = 0; //0 to 11
+	Contents.SetNum(MaxInventorySlots, false);
 	UsingItem = false;
 }
 
@@ -46,7 +46,7 @@ bool APlayerInventory::Scroll(int Amount) {
 	if (UsingItem == false) {
 		int currentSlot = ActiveInventorySlot;
 		int newvalue = ActiveInventorySlot + Amount;
-		ActiveInventorySlot = FMath::Clamp(newvalue, 0, 9);
+		ActiveInventorySlot = FMath::Clamp(newvalue, 0, MaxInventorySlots);
 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(currentSlot));
 
 		if (currentSlot != ActiveInventorySlot) {
@@ -63,7 +63,7 @@ bool APlayerInventory::Scroll(int Amount) {
 
 void APlayerInventory::GiveItem(SpawnableInfo* _Item)
 {
-	for (int i = 0; i < 9; i++) {
+	for (int i = 0; i < MaxInventorySlots; i++) {
 		if (!GetItemInSlot(i)) {
 			Contents[i] = _Item;
 			return;

@@ -5,7 +5,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "PlayerInventory.h"
-#include "Classes/Engine/Texture2D.h"
+#include "Runtime/Engine/Classes/Engine/Texture2D.h"
+#include "UMG/Public/Components/Image.h"
 #include "InventoryWidget.generated.h"
 
 /**
@@ -20,6 +21,5 @@ private:
 public:
 	UFUNCTION(BlueprintCallable)
 		UTexture2D *GetImageAtIndex(int Index, APlayerInventory *Ref);
-	
 	
 };
