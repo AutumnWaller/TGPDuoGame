@@ -6,8 +6,7 @@ class TGPDUO_API SpawnableInfo
 {
 public:
 	//Placeable ID, Placeable Blueprint, Placeable Grid Size
-	SpawnableInfo(int _ID, FString _ItemName, FString _BPN, FVector2D _S, int _MaxStackSize);
-
+	SpawnableInfo(int _ID, FString _ItemName, FString _BPN, FVector2D _S, int _MaxStackSize, int _Amount);
 	~SpawnableInfo();
 
 	int ID;
@@ -16,10 +15,7 @@ public:
 	FString ImagePath;
 	FVector2D Size;
 	int MaxStackSize;
-
-
-
-
+	int Amount;
 };
 
 static class TGPDUO_API Spawnables {

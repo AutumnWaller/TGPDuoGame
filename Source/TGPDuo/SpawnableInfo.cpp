@@ -2,7 +2,7 @@
 
 
 
-SpawnableInfo::SpawnableInfo(int _ID, FString _ItemName, FString _BPN, FVector2D _S, int _MaxStackSize)
+SpawnableInfo::SpawnableInfo(int _ID, FString _ItemName, FString _BPN, FVector2D _S, int _MaxStackSize, int _Amount = 1)
 {
 	ID = _ID;
 	ItemName = _ItemName;
@@ -10,6 +10,7 @@ SpawnableInfo::SpawnableInfo(int _ID, FString _ItemName, FString _BPN, FVector2D
 	BluePrintName = _BPN;
 	Size = _S;
 	MaxStackSize = _MaxStackSize;
+	Amount = _Amount;
 }
 
 

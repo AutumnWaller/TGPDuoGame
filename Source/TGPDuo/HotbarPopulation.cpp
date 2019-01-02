@@ -4,13 +4,9 @@
 void UHotbarPopulation::Initialise()
 { 
 	Inventory = GetWorld()->SpawnActor<APlayerInventory>();
-	FString Test = Inventory->Contents[0]->ItemName;
-	//TArray<AActor*> Actors = GetWorld()->PersistentLevel->Actors;
-	//for (int i = 0; i < Actors.Num(); i++) {
-	//	if (Actors[i]->GetClass() == APlayerInventory::StaticClass())
-	//		Inventory = (APlayerInventory*)Actors[i]->GetClass();
-	//}
 }
+
+
 
 bool UHotbarPopulation::IsMatchingData(FString _Name)
 {
@@ -21,4 +17,15 @@ bool UHotbarPopulation::IsMatchingData(FString _Name)
 			return true;
 	}
 	return false;
+}
+
+void UHotbarPopulation::GetInventoryData(const int Index, FString &Name, int &Amount)
+{
+	Name = Inventory->Contents[Index]->ItemName;
+	Amount = Inventory->Contents[Index]->Amount;
+}
+
+int UHotbarPopulation::GetInventorySize()
+{
+	return Inventory->Contents.Num();
 }

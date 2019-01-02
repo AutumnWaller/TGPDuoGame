@@ -6,6 +6,7 @@
 #include "PlayerInventory.h"
 #include "SpawnableInfo.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/Classes/Engine/Texture2D.h"
 #include "HotbarPopulation.generated.h"
 
 /**
@@ -19,11 +20,14 @@ public:
 		APlayerInventory* Inventory;
 		UFUNCTION(BlueprintCallable)
 		void Initialise();
-
-		UFUNCTION(BlueprintCallable)
-		bool IsMatchingData(FString _Name);
 	
 		UFUNCTION(BlueprintCallable)
-		void IsMatchingData(FString _Name);
+		bool IsMatchingData(FString _Name);
+
+		UFUNCTION(BlueprintCallable)
+		void GetInventoryData(const int Index, FString &Name, int &Amount);
+
+		UFUNCTION(BlueprintCallable)
+			int GetInventorySize();
 	
 };
