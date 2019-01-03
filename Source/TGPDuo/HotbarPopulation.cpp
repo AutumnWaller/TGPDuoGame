@@ -21,6 +21,8 @@ bool UHotbarPopulation::IsMatchingData(FString _Name)
 
 void UHotbarPopulation::GetInventoryData(const int Index, FString &Name, int &Amount)
 {
+	if (!Inventory->Contents[Index])
+		return;
 	Name = Inventory->Contents[Index]->ItemName;
 	Amount = Inventory->Contents[Index]->Amount;
 }
@@ -28,4 +30,9 @@ void UHotbarPopulation::GetInventoryData(const int Index, FString &Name, int &Am
 int UHotbarPopulation::GetInventorySize()
 {
 	return Inventory->Contents.Num();
+}
+
+int UHotbarPopulation::GetActiveInventorySlot()
+{
+	return Inventory->ActiveInventorySlot;
 }

@@ -188,7 +188,7 @@ void ATGPDuoCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 
 void ATGPDuoCharacter::RotateClockWise()
 {
-	if (Inventory->GetActiveSlot() != 0) {
+	if (Inventory->ActiveInventorySlot != 0) {
 		if (InventoryItemRotation == 3) {
 			InventoryItemRotation = 0;
 		}
@@ -202,7 +202,7 @@ void ATGPDuoCharacter::RotateClockWise()
 
 void ATGPDuoCharacter::RotateCounterClockWise()
 {
-	if (Inventory->GetActiveSlot() != 0) {
+	if (Inventory->ActiveInventorySlot != 0) {
 		if (InventoryItemRotation == 0) {
 			InventoryItemRotation = 3;
 		}
@@ -217,9 +217,9 @@ void ATGPDuoCharacter::RotateCounterClockWise()
 void ATGPDuoCharacter::OnFire()
 {
 
-	if (Inventory->GetActiveSlot() != 0) { //first inventory slot is locked to gun for now
+	if (Inventory->ActiveInventorySlot != 0) { //first inventory slot is locked to gun for now
 		FVector CursorPosition;
-		if (Inventory->GetActiveSlot() == 1) {
+		if (Inventory->ActiveInventorySlot == 1) {
 			//Wrench
 			AActor * ObservedObject = nullptr;
 			FVector ObjectLocalHit;
@@ -233,7 +233,7 @@ void ATGPDuoCharacter::OnFire()
 			}
 
 		}
-		else if (Inventory->GetActiveSlot() == 2) {
+		else if (Inventory->ActiveInventorySlot == 2) {
 			//Conveyor Belt
 			bool lookingAtAnything = LookScan(CursorPosition);
 			FVector GridPosition = CursorPosition / WorldManager->GetGridSize();
@@ -277,7 +277,7 @@ void ATGPDuoCharacter::OnFire()
 				}*/
 			}
 		}
-		else if (Inventory->GetActiveSlot() == 3) {
+		else if (Inventory->ActiveInventorySlot == 3) {
 			//Assembler
 			bool lookingAtAnything = LookScan(CursorPosition);
 			FVector GridPosition = CursorPosition / WorldManager->GetGridSize();
@@ -366,7 +366,7 @@ void ATGPDuoCharacter::OnScroll(float AxisValue)
 void ATGPDuoCharacter::UpdateEquipped() {
 
 	//TEMPORARY
-	if (Inventory->GetActiveSlot() == 0) {
+	if (Inventory->ActiveInventorySlot == 0) {
 		//show gun:
 		if (bUsingMotionControllers)
 		{
@@ -392,7 +392,7 @@ void ATGPDuoCharacter::UpdateEquipped() {
 		}
 	}
 	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Switched to Inventory slot " + FString::FromInt(Inventory->GetActiveSlot())));
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Switched to Inventory slot " + FString::FromInt(Inventory->ActiveInventorySlot)));
 }
 
 void ATGPDuoCharacter::OnContextMenu()
@@ -477,9 +477,9 @@ void ATGPDuoCharacter::LookUpAtRate(float Rate)
 void ATGPDuoCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (Inventory->GetActiveSlot() != 0) { //first inventory slot is locked to gun for now
+	if (Inventory->ActiveInventorySlot != 0) { //first inventory slot is locked to gun for now
 		FVector CursorPosition;
-		if (Inventory->GetActiveSlot() == 1) {
+		if (Inventory->ActiveInventorySlot == 1) {
 			//Wrench
 			AActor * ObservedObject = nullptr;
 			FVector ObjectLocalHit;
@@ -515,12 +515,12 @@ void ATGPDuoCharacter::Tick(float DeltaTime)
 
 				//TODO: set inventory ghost angle here;
 			}
-			if (Inventory->GetActiveSlot() == 2) {
+			if (Inventory->ActiveInventorySlot == 2) {
 				//Conveyor Belt
 				bool lookingAtAnything = LookScan(CursorPosition);
 				//check occupacy of cell at position
 			}
-			else if (Inventory->GetActiveSlot() == 3) {
+			else if (Inventory->ActiveInventorySlot == 3) {
 				//Assembler
 				bool lookingAtAnything = LookScan(CursorPosition);
 				//check occupacy of cell at position+size

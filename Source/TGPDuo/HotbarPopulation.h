@@ -6,12 +6,12 @@
 #include "PlayerInventory.h"
 #include "SpawnableInfo.h"
 #include "Blueprint/UserWidget.h"
-#include "Engine/Classes/Engine/Texture2D.h"
 #include "HotbarPopulation.generated.h"
 
 /**
  * 
  */
+
 UCLASS()
 class TGPDUO_API UHotbarPopulation : public UUserWidget
 {
@@ -30,4 +30,8 @@ public:
 		UFUNCTION(BlueprintCallable)
 			int GetInventorySize();
 	
+		UFUNCTION(BlueprintCallable)
+			int GetActiveInventorySlot();
+
+
 };

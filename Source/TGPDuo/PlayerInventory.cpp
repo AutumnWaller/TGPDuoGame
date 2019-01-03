@@ -8,16 +8,19 @@ APlayerInventory::APlayerInventory()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-	ActiveInventorySlot = 0; //0 to 11
-	Contents.SetNum(MaxInventorySlots, false);
+	ActiveInventorySlot = 0; //0 to MaxInventorySlots
 	UsingItem = false;
+
+	for (int i = 0; i < MaxInventorySlots; i++) {
+		Contents.Add(GetSpawnableByName("Empty"));
+	}
 }
 
 // Called when the game starts or when spawned
 void APlayerInventory::BeginPlay()
 {
 	Super::BeginPlay();
-	GiveItem(Spawnables::GetSpawnable(0));
+	//GiveItem(Spawnables::GetSpawnable(0));
 }
 
 // Called every frame
@@ -30,11 +33,6 @@ void APlayerInventory::Tick(float DeltaTime)
 bool APlayerInventory::IsItemPlaceable()
 {
 	return false;
-}
-
-uint32 APlayerInventory::GetActiveSlot()
-{
-	return ActiveInventorySlot;
 }
 
 bool APlayerInventory::IsUsingItem()
@@ -61,13 +59,60 @@ bool APlayerInventory::Scroll(int Amount) {
 	return false;
 }
 
-void APlayerInventory::GiveItem(SpawnableInfo* _Item)
+SpawnableInfo * APlayerInventory::GetSpawnableByName(FString _Name)
+{
+	for (int i = 0; i < Spawnables::AvailableSpawnables.Num(); i++) {
+		if (Spawnables::AvailableSpawnables[i].ItemName == _Name)
+			return new SpawnableInfo(Spawnables::AvailableSpawnables[i]);
+	}
+	return nullptr;
+}
+
+bool APlayerInventory::GiveItem(SpawnableInfo* _Item)
 {
 	for (int i = 0; i < MaxInventorySlots; i++) {
-		if (!GetItemInSlot(i)) {
-			Contents[i] = _Item;
-			return;
+		if (GetItemInSlot(i)->ItemName == "Empty") {
+			delete Contents[i];
+			Contents.RemoveAt(i);
+			Contents.Insert(_Item, i);
+			return true;
+		}else if (GetItemInSlot(i)->ItemName == _Item->ItemName) {
+			if (_Item->Amount + 1 < _Item->MaxStackSize) {
+				delete Contents[i];
+				SpawnableInfo* NewItem = _Item;
+				NewItem->Amount++;
+				Contents.RemoveAt(i);
+				Contents.Insert(_Item, i);
+				return true;
+			}
+		}
+			
+		
+	}
+	return false;
+}
+
+bool APlayerInventory::GiveItem(FString _Name)
+{
+	return GiveItem(GetSpawnableByName(_Name));
+}
+
+bool APlayerInventory::RemoveItem(int Index)
+{
+	delete Contents[Index];
+	Contents.RemoveAt(Index);
+	Contents.Insert(GetSpawnableByName("Empty"), Index);
+	return true;
+}
+
+bool APlayerInventory::RemoveItem(FString _Name)
+{
+	for (int i = 0; i < MaxInventorySlots; i++) {
+		if (Contents[i]->ItemName == _Name) {
+			RemoveItem(i);
+			return true;
 		}
 	}
+	return false;
 }
 

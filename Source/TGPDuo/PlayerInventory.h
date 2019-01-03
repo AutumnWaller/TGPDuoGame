@@ -18,9 +18,8 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
-	uint32 ActiveInventorySlot;
 	bool UsingItem;
-	const int MaxInventorySlots = 12;
+	const int MaxInventorySlots = 6;
 public:	
 	TArray<SpawnableInfo*> Contents;
 	APlayerInventory();
@@ -31,12 +30,15 @@ public:
 
 	bool IsItemPlaceable();
 
-	uint32 GetActiveSlot();
-
 	bool IsUsingItem();
 
 	bool Scroll(int Amount);
-	SpawnableInfo* GetItemInSlot(uint32 _Slot) {	return Contents[_Slot]; };
-	void GiveItem(SpawnableInfo* _Item);
+	uint32 ActiveInventorySlot;
 
+	SpawnableInfo* GetItemInSlot(uint32 _Slot) {	return Contents[_Slot]; };
+	SpawnableInfo* GetSpawnableByName(FString _Name);
+	bool GiveItem(SpawnableInfo* _Item);
+	bool GiveItem(FString _Name);
+	bool RemoveItem(int Index);
+	bool RemoveItem(FString _Name);
 };

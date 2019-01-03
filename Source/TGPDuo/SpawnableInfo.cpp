@@ -2,11 +2,10 @@
 
 
 
-SpawnableInfo::SpawnableInfo(int _ID, FString _ItemName, FString _BPN, FVector2D _S, int _MaxStackSize, int _Amount = 1)
+SpawnableInfo::SpawnableInfo(int _ID, FString _ItemName, FString _BPN, FVector2D _S, int _Amount = 1, int _MaxStackSize = 99)
 {
 	ID = _ID;
 	ItemName = _ItemName;
-	ImagePath = "Texture2D'/Game/UI/Icons/test.test'";
 	BluePrintName = _BPN;
 	Size = _S;
 	MaxStackSize = _MaxStackSize;
@@ -28,6 +27,7 @@ SpawnableInfo * Spawnables::GetSpawnable(FString _Name)
 }
 
 TArray<SpawnableInfo> Spawnables::AvailableSpawnables = {
-	{ SpawnableInfo(0, "Conveyor", "Blueprint'/Game/Game/Placeables/Conveyor/BP_Conveyor.BP_Conveyor'", FVector2D(1, 1), 99)},
-	{ SpawnableInfo(1, "Assembler", "Blueprint'/Game/Game/Placeables/Assembler/BP_Assembler.BP_Assembler_C'", FVector2D(3, 3), 99) }
+	{ SpawnableInfo(-1, "Empty", "", FVector2D(0, 0), 0, 0)},
+	{ SpawnableInfo(0, "Conveyor", "Blueprint'/Game/Game/Placeables/Conveyor/BP_Conveyor.BP_Conveyor'", FVector2D(1, 1), 1, 99)},
+	{ SpawnableInfo(1, "Assembler", "Blueprint'/Game/Game/Placeables/Assembler/BP_Assembler.BP_Assembler_C'", FVector2D(3, 3), 1, 99) }
 };
