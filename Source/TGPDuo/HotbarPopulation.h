@@ -33,5 +33,6 @@ public:
 		UFUNCTION(BlueprintCallable)
 			int GetActiveInventorySlot();
 
-
+		UFUNCTION(BlueprintCallable)
+			void Giveitem(FString _Name);
 };

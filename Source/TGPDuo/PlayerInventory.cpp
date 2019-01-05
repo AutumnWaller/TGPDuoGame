@@ -7,19 +7,24 @@
 APlayerInventory::APlayerInventory()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	ActiveInventorySlot = 0; //0 to MaxInventorySlots
 	UsingItem = false;
 
 	for (int i = 0; i < MaxInventorySlots; i++) {
 		Contents.Add(GetSpawnableByName("Empty"));
 	}
+
 }
 
 // Called when the game starts or when spawned
 void APlayerInventory::BeginPlay()
 {
 	Super::BeginPlay();
+	GiveItem("Conveyor");
+	GiveItem("Conveyor");
+	GiveItem("Conveyor");
+	GiveItem("Assembler");
 	//GiveItem(Spawnables::GetSpawnable(0));
 }
 
@@ -71,23 +76,27 @@ SpawnableInfo * APlayerInventory::GetSpawnableByName(FString _Name)
 bool APlayerInventory::GiveItem(SpawnableInfo* _Item)
 {
 	for (int i = 0; i < MaxInventorySlots; i++) {
+		for (int j = 0; j < MaxInventorySlots; j++) {
+			if (GetItemInSlot(j)->ItemName == _Item->ItemName) {
+				if (Contents[j]->Amount <= _Item->MaxStackSize) {
+					SpawnableInfo* NewItem = _Item;
+					NewItem->Amount = Contents[j]->Amount + 1;
+					delete Contents[j];
+					Contents.RemoveAt(j);
+					Contents.Insert(NewItem, j);
+					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, (L"Item Given: " + FString::FromInt(NewItem->Amount)));
+
+					return true;
+				}
+			}
+		}
 		if (GetItemInSlot(i)->ItemName == "Empty") {
 			delete Contents[i];
 			Contents.RemoveAt(i);
 			Contents.Insert(_Item, i);
 			return true;
-		}else if (GetItemInSlot(i)->ItemName == _Item->ItemName) {
-			if (_Item->Amount + 1 < _Item->MaxStackSize) {
-				delete Contents[i];
-				SpawnableInfo* NewItem = _Item;
-				NewItem->Amount++;
-				Contents.RemoveAt(i);
-				Contents.Insert(_Item, i);
-				return true;
-			}
+
 		}
-			
-		
 	}
 	return false;
 }

@@ -36,3 +36,8 @@ int UHotbarPopulation::GetActiveInventorySlot()
 {
 	return Inventory->ActiveInventorySlot;
 }
+
+void UHotbarPopulation::Giveitem(FString _Name)
+{
+	Inventory->GiveItem(_Name);
+}
