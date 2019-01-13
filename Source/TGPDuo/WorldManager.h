@@ -34,8 +34,8 @@ public:
 	int Seed;
 
 
-	bool AddPlaceable(int x, int y, int ID, int Rotation);
-	bool CanBePlaced(int x, int y, int ID);
+	bool AddPlaceable(int x, int y, SpawnableInfo * Item, int Rotation);
+	bool CanBePlaced(int x, int y, SpawnableInfo * Item);
 
 	bool IsCellOccupied(int x, int y);
 
@@ -47,14 +47,11 @@ private:
 		void GenerateWorld(bool Populate, int width, int height);
 
 
-
 	void DeleteWorld();
 	
 
 	int Width;
 	int Height;
 	int GridSize;
-
-	TArray<SpawnableInfo*> SpawnableInformation;
 
 };

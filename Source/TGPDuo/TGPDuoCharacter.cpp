@@ -13,6 +13,7 @@
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "PlayerInventory.h"
 #include "Placeable.h"
+#include "Conveyor.h"
 #include "WorldManager.h"
 #include "Engine.h"
 
@@ -156,6 +157,7 @@ void ATGPDuoCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 
 	// Bind fire event
 	PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &ATGPDuoCharacter::OnFire);
+	PlayerInputComponent->BindAction("Fire", IE_Released, this, &ATGPDuoCharacter::OnRelease);
 
 	//Bind context menu event
 	PlayerInputComponent->BindAction("ContextMenu", IE_Pressed, this, &ATGPDuoCharacter::OnContextMenu);
@@ -172,6 +174,9 @@ void ATGPDuoCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	PlayerInputComponent->BindAxis("MoveForward", this, &ATGPDuoCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &ATGPDuoCharacter::MoveRight);
 
+	PlayerInputComponent->BindAction("LeftShift", IE_Pressed, this, &ATGPDuoCharacter::StartSprint);
+	PlayerInputComponent->BindAction("LeftShift", IE_Released, this, &ATGPDuoCharacter::StopSprint);
+
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
 	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
@@ -183,7 +188,7 @@ void ATGPDuoCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerIn
 	PlayerInputComponent->BindAction("RotateCW", IE_Pressed, this, &ATGPDuoCharacter::RotateClockWise);
 	PlayerInputComponent->BindAction("RotateCCW", IE_Pressed, this, &ATGPDuoCharacter::RotateCounterClockWise);
 
-
+	PlayerInputComponent->BindAction("SingleFireMode", IE_Pressed, this, &ATGPDuoCharacter::ToggleSingleFire);
 }
 
 void ATGPDuoCharacter::RotateClockWise()
@@ -214,25 +219,173 @@ void ATGPDuoCharacter::RotateCounterClockWise()
 	}
 }
 
-void ATGPDuoCharacter::OnFire()
+void ATGPDuoCharacter::RestrictMovement()
 {
+	FVector PlayerPosition = this->GetActorLocation();
+	if (PlayerPosition.Z < -500) {
+		this->SetActorLocation(FVector(-100, -100, 150), false, nullptr, ETeleportType::ResetPhysics);
+	}
+}
 
-	if (Inventory->ActiveInventorySlot != 0) { //first inventory slot is locked to gun for now
-		FVector CursorPosition;
-		if (Inventory->ActiveInventorySlot == 1) {
-			//Wrench
-			AActor * ObservedObject = nullptr;
-			FVector ObjectLocalHit;
-			bool lookingAtAnything = LookScanForObject(ObservedObject, CursorPosition, ObjectLocalHit);
-			if (lookingAtAnything) {
-				APlaceable * Selected = Cast<APlaceable>(ObservedObject);
-				if (Selected != nullptr) {
-					//object is definitely a placeable.
+void ATGPDuoCharacter::InteractWithConveyors(float DeltaTime)
+{
+	if (WorldManager != nullptr) {
+		int GridSize = WorldManager->GetGridSize();
+		FVector PlayerPosition = this->GetActorLocation();
+		int GridX = FMath::DivideAndRoundNearest(int(PlayerPosition.X), GridSize);
+		int GridY = FMath::DivideAndRoundNearest(int(PlayerPosition.Y), GridSize);
+		FVector GridPosition = FVector(GridX*GridSize, GridY*GridSize, 0.f);
+		UWorld * World = GetWorld();
+		
+		DrawDebugLine(World, GridPosition + FVector(-GridSize / 2, -GridSize / 2, 15), GridPosition + FVector(GridSize / 2, -GridSize / 2, 15), FColor(0, 0, 255), false, -1.f, 20, 5.f);
+		DrawDebugLine(World, GridPosition + FVector(-GridSize / 2, GridSize / 2, 15), GridPosition + FVector(GridSize / 2, GridSize / 2, 15),	FColor(0, 0, 255), false, -1.f, 20, 5.f);
+		DrawDebugLine(World, GridPosition + FVector(-GridSize / 2, -GridSize / 2, 15), GridPosition + FVector(-GridSize / 2, GridSize / 2, 15), FColor(0, 0, 255), false, -1.f, 20, 5.f);
+		DrawDebugLine(World, GridPosition + FVector(GridSize / 2, -GridSize / 2, 15), GridPosition + FVector(GridSize / 2, GridSize / 2, 15),	FColor(0, 0, 255), false, -1.f, 20, 5.f);
+
+		WorldCell * Cell;
+		if (WorldManager->GetCell(Cell, GridX, GridY)) {
+			AConveyor * C = Cast<AConveyor>(Cell->Placeable);
+			if (C != nullptr) {
+				//DrawDebugCircle(World, GridPosition + FVector(0, 0, 20), GridSize / 2.1, 10, FColor(0, 0, 255), false, -1, 1, 5.0f, FVector(1,0,0), FVector(0,1,0), false);
+				int Rotation = int(C->Rotation);
+				double Angle = 3.1415926535897932 / 2.0 * -Rotation;
+				FVector2D Direction = FVector2D(FMath::Sin(Angle), FMath::Cos(Angle));
+				//DrawDebugLine(World, GridPosition + FVector(0, 0, 20), GridPosition + FVector((Direction * GridSize / 2.0f), 20), FColor(255, 0, 0), false, -1.f, 20, 5.f);
+				FVector RelativePosition = C->GetActorLocation() - PlayerPosition;
+				if (RelativePosition.Z < 21) {
+					FVector2D CurrentDirection = ConveyorInfluence.GetSafeNormal();
+					//AddMovementInput(Direction, 10, false);
+					//slow down other axis:
+
+					//Y = forward
+					//X = left
+					float Max = 1;
+					ConveyorType Type = C->GetType();
+					switch (Type) {
+					case ConveyorType::SLOW:
+						Max = 1;
+						break;
+					case ConveyorType::MEDIUM:
+						Max = 2;
+						break;
+					case ConveyorType::FAST:
+						Max = 3;
+						break;
+					}
+					switch (PlaceableRotation(Rotation)) {
+					case PlaceableRotation::FORWARD:
+						if (ConveyorInfluence.X > 0) {
+							ConveyorInfluence.X = FMath::Max(ConveyorInfluence.X - DeltaTime, 0.0f);
+						}
+						else if (ConveyorInfluence.X<0){
+							ConveyorInfluence.X = FMath::Min(ConveyorInfluence.X + DeltaTime, 0.0f);
+						}
+						ConveyorInfluence.Y = FMath::Min(ConveyorInfluence.Y + DeltaTime, Max);
+
+						break;
+					case PlaceableRotation::BACK:
+						if (ConveyorInfluence.X > 0) {
+							ConveyorInfluence.X = FMath::Max(ConveyorInfluence.X - DeltaTime, 0.0f);
+						}
+						else if (ConveyorInfluence.X < 0){
+							ConveyorInfluence.X = FMath::Min(ConveyorInfluence.X + DeltaTime, 0.0f);
+						}
+						ConveyorInfluence.Y = FMath::Max(ConveyorInfluence.Y - DeltaTime, -Max);
+
+						break;
+					case PlaceableRotation::RIGHT:
+						if (ConveyorInfluence.Y > 0) {
+							ConveyorInfluence.Y = FMath::Max(ConveyorInfluence.Y - DeltaTime, 0.0f);
+						}
+						else if (ConveyorInfluence.Y < 0) {
+							ConveyorInfluence.Y = FMath::Min(ConveyorInfluence.Y + DeltaTime, 0.0f);
+						}
+						ConveyorInfluence.X = FMath::Max(ConveyorInfluence.X - DeltaTime, -Max);
+
+						break;
+					case PlaceableRotation::LEFT:
+						if (ConveyorInfluence.Y > 0) {
+							ConveyorInfluence.Y = FMath::Max(ConveyorInfluence.Y - DeltaTime, 0.0f);
+						}
+						else if (ConveyorInfluence.Y < 0) {
+							ConveyorInfluence.Y = FMath::Min(ConveyorInfluence.Y + DeltaTime, 0.0f);
+						}
+						ConveyorInfluence.X = FMath::Min(ConveyorInfluence.X + DeltaTime, Max);
+
+						break;
+					}
 
 				}
-			}
+			} else {
 
+				//X
+				if (ConveyorInfluence.X > 0) {
+					ConveyorInfluence.X = FMath::Max(ConveyorInfluence.X - DeltaTime*3, 0.0f);
+				}
+				else if (ConveyorInfluence.X < 0) {
+					ConveyorInfluence.X = FMath::Min(ConveyorInfluence.X + DeltaTime * 3, 0.0f);
+				}
+				//Y
+				if (ConveyorInfluence.Y > 0) {
+					ConveyorInfluence.Y = FMath::Max(ConveyorInfluence.Y - DeltaTime * 3, 0.0f);
+				}
+				else if (ConveyorInfluence.Y < 0) {
+					ConveyorInfluence.Y = FMath::Min(ConveyorInfluence.Y + DeltaTime * 3, 0.0f);
+				}
+
+			}
+			AddActorWorldOffset(FVector(ConveyorInfluence, 0) * 100 * DeltaTime, true);
 		}
+
+	}
+	//AddMovementInput(FVector(0,0,0), 10);
+}
+
+void ATGPDuoCharacter::ToggleSingleFire()
+{
+	SingleFire = !SingleFire;
+}
+
+void ATGPDuoCharacter::OnFire()
+{
+	if (SingleFire == false) {
+		Firing = true;
+	}
+	if (Inventory->ActiveInventorySlot != 0) { //first inventory slot is locked to gun for now
+		UINT32 actualslot = Inventory->ActiveInventorySlot - 1;
+		FVector CursorPosition;
+
+		SpawnableInfo *Item = Inventory->GetItemInSlot(actualslot);
+		if (Item->Amount > 0) {
+			bool lookingAtAnything = LookScan(CursorPosition);
+			FVector GridPosition = CursorPosition / WorldManager->GetGridSize();
+			//check occupacy of cell at position
+			if (WorldManager != nullptr) {
+				//if (GEngine)
+					//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Trying to place Conveyor"));
+				bool success = WorldManager->AddPlaceable(GridPosition.X, GridPosition.Y, Item, InventoryItemRotation);
+				if (success) {
+					//if (GEngine)
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Places Successfully"));
+					//TODO: ACTUALLY ADD INVENTORY INTERACTION
+					Inventory->GiveItem(Item, 1);
+					//Inventory->RemoveItem(actualslot);
+				}
+			}
+		}
+			//Wrench
+		/*AActor * ObservedObject = nullptr;
+		FVector ObjectLocalHit;
+		bool lookingAtAnything = LookScanForObject(ObservedObject, CursorPosition, ObjectLocalHit);
+		if (lookingAtAnything) {
+			APlaceable * Selected = Cast<APlaceable>(ObservedObject);
+			if (Selected != nullptr) {
+				//object is definitely a placeable.
+
+			}
+		}*/
+
+		/*
 		else if (Inventory->ActiveInventorySlot == 2) {
 			//Conveyor Belt
 			bool lookingAtAnything = LookScan(CursorPosition);
@@ -241,7 +394,7 @@ void ATGPDuoCharacter::OnFire()
 			if (WorldManager != nullptr) {
 				if (GEngine)
 					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Trying to place Conveyor"));
-				bool success = WorldManager->AddPlaceable(GridPosition.X, GridPosition.Y, 0, InventoryItemRotation);
+				bool success = WorldManager->AddPlaceable(GridPosition.X, GridPosition.Y, Inventory., InventoryItemRotation);
 
 
 
@@ -274,7 +427,7 @@ void ATGPDuoCharacter::OnFire()
 					if (GEngine) {
 						GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("cell not within world"));
 					}
-				}*/
+				}
 			}
 		}
 		else if (Inventory->ActiveInventorySlot == 3) {
@@ -288,12 +441,18 @@ void ATGPDuoCharacter::OnFire()
 				bool success = WorldManager->AddPlaceable(GridPosition.X, GridPosition.Y, 1, InventoryItemRotation);
 			}
 
-		}
+		}*/
+	}
+	else {
+		//gun
 	}
 
 }
 
-
+void ATGPDuoCharacter::OnRelease()
+{
+	Firing = false;
+}
 
 
 	//InventoryItem Equipped = Iventory.GetItem[ActiveInventorySlot]
@@ -397,7 +556,8 @@ void ATGPDuoCharacter::UpdateEquipped() {
 
 void ATGPDuoCharacter::OnContextMenu()
 {
-
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("RightClicked"));
 }
 
 void ATGPDuoCharacter::OnResetVR()
@@ -450,6 +610,7 @@ void ATGPDuoCharacter::MoveForward(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorForwardVector(), Value);
+
 	}
 }
 
@@ -459,7 +620,18 @@ void ATGPDuoCharacter::MoveRight(float Value)
 	{
 		// add movement in that direction
 		AddMovementInput(GetActorRightVector(), Value);
+
 	}
+}
+
+void ATGPDuoCharacter::StartSprint()
+{
+	Sprinting = true;
+}
+
+void ATGPDuoCharacter::StopSprint()
+{
+	Sprinting = false;
 }
 
 void ATGPDuoCharacter::TurnAtRate(float Rate)
@@ -477,55 +649,72 @@ void ATGPDuoCharacter::LookUpAtRate(float Rate)
 void ATGPDuoCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (Sprinting) {
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sprinting!"));
+	}
+	else {
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}
+	RestrictMovement();
+	InteractWithConveyors(DeltaTime);
 	if (Inventory->ActiveInventorySlot != 0) { //first inventory slot is locked to gun for now
 		FVector CursorPosition;
-		if (Inventory->ActiveInventorySlot == 1) {
-			//Wrench
-			AActor * ObservedObject = nullptr;
-			FVector ObjectLocalHit;
-			bool lookingAtAnything = LookScanForObject(ObservedObject, CursorPosition, ObjectLocalHit);
+
+		UINT32 actualslot = Inventory->ActiveInventorySlot - 1;
+		SpawnableInfo *Item = Inventory->GetItemInSlot(actualslot);
+		if (Item->Amount > 0) {
+			bool lookingAtAnything = LookScan(CursorPosition);
+			if (Firing) {
+				FVector GridPosition = CursorPosition / WorldManager->GetGridSize();
+				//check occupacy of cell at position
+				if (WorldManager != nullptr) {
+					//if (GEngine)
+						//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Trying to place Conveyor"));
+					bool success = WorldManager->AddPlaceable(GridPosition.X, GridPosition.Y, Item, InventoryItemRotation);
+					if (success) {
+						//if (GEngine)
+							//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Places Successfully"));
+						//TODO: actually remove from the pile
+						//Inventory->GiveItem(Item, 1);
+						//Inventory->RemoveItem(actualslot);
+					}
+				}
+			}
 		}
-		else {
-			if (rotating) {
-				float rotateamount = 1 * DeltaTime;
-				//RotationAnimation wants to be 0
-				if (RotationAnimation < rotateamount && RotationAnimation > -rotateamount) { //is it really close to 0?
-					//snap rotation and stop;
-					RotationAnimation = 0;
-					rotating = false;
+		if (rotating) {
+			float rotateamount = 3 * DeltaTime;
+			//RotationAnimation wants to be 0
+			if (RotationAnimation < rotateamount && RotationAnimation > -rotateamount) { //is it really close to 0?
+				//snap rotation and stop;
+				RotationAnimation = 0;
+				rotating = false;
+			}
+			else {
+				//is mid-rotation, so animate
+				if (RotationAnimation > 2) { // more than 180
+					RotationAnimation -= 4;
+				}
+				if (RotationAnimation < -2) { //less than -18
+					RotationAnimation += 4;
+				}
+				if (RotationAnimation > 0) {
+					RotationAnimation -= rotateamount;
 				}
 				else {
-					//is mid-rotation, so animate
-					if (RotationAnimation > 2) { // more than 180
-						RotationAnimation -= 4;
-					}
-					if (RotationAnimation < -2) { //less than -18
-						RotationAnimation += 4;
-					}
-					if (RotationAnimation > 0) {
-						RotationAnimation -= rotateamount;
-					}
-					else {
-						RotationAnimation += rotateamount;
-					}
+					RotationAnimation += rotateamount;
 				}
-
-				float angle = (InventoryItemRotation-RotationAnimation)*90;
-
-
-				//TODO: set inventory ghost angle here;
 			}
-			if (Inventory->ActiveInventorySlot == 2) {
-				//Conveyor Belt
-				bool lookingAtAnything = LookScan(CursorPosition);
-				//check occupacy of cell at position
-			}
-			else if (Inventory->ActiveInventorySlot == 3) {
-				//Assembler
-				bool lookingAtAnything = LookScan(CursorPosition);
-				//check occupacy of cell at position+size
-			}
+
+			float angle = (InventoryItemRotation - RotationAnimation) * 90;
+
+
+			//TODO: set inventory ghost angle here;
 		}
+	}
+	else {
+		//gun
 	}
 }
 
@@ -636,6 +825,11 @@ bool ATGPDuoCharacter::LookScanForObject(AActor *& Object, FVector &CursorPositi
 				DrawDebugLine(World, ActualPosition + FVector(-GridSize / 2, -GridSize / 2, 5), ActualPosition + FVector(-GridSize / 2, GridSize / 2, 5), FColor(0, 255, 0), false, -1.f, 0, 5.f);
 				DrawDebugLine(World, ActualPosition + FVector(GridSize / 2, -GridSize / 2, 5), ActualPosition + FVector(GridSize / 2, GridSize / 2, 5), FColor(0, 255, 0), false, -1.f, 0, 5.f);
 
+
+				double Angle = 3.1415926535897932 / 2.0 * -(RotationAnimation + InventoryItemRotation);
+				FVector2D Direction = FVector2D(FMath::Sin(Angle), FMath::Cos(Angle));
+				DrawDebugLine(World, RelativePosition + FVector(0, 0, 20), RelativePosition + FVector((Direction * GridSize / 2.0f), 20), FColor(255, 0, 0), false, -1.f, 20, 5.f);
+
 				/*DrawDebugSphere(
 					GetWorld(),
 					NewPosition,
@@ -651,7 +845,7 @@ bool ATGPDuoCharacter::LookScanForObject(AActor *& Object, FVector &CursorPositi
 			}
 		}
 		else {
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Cast Fail"));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Cast Fail"));
 			return false;
 		}
 	}

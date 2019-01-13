@@ -8,6 +8,15 @@
 
 #include "Placeable.generated.h"
 
+UENUM(BlueprintType)
+enum class PlaceableRotation : uint8 {
+	FORWARD,	// 0,	 1
+	RIGHT,		//-1,	 0
+	BACK,		// 0,	-1
+	LEFT		// 1,	 0
+};
+
+
 UCLASS()
 class TGPDUO_API APlaceable : public AActor
 {
@@ -23,9 +32,13 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BlockData)
 		FVector Position;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BlockData)
-		int Rotation;
+		PlaceableRotation Rotation;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BlockData)
 		bool Placed;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = BlockData)
+		FString Name;
+	UFUNCTION(BlueprintCallable)
+		void SetRotation(PlaceableRotation _Rotation);
 
 protected:
 	// Called when the game starts or when spawned

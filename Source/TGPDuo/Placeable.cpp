@@ -11,10 +11,18 @@ APlaceable::APlaceable()
 	Size = FVector(1, 1, 0);
 
 	Position = FVector(0, 0, 0); //grid position?
-	int Rotation = 0;
-	bool Placed = false;
+	Rotation = PlaceableRotation::FORWARD;
+	Placed = false;
+	Name = "Placeable";
 
+}
 
+void APlaceable::SetRotation(PlaceableRotation _Rotation)
+{
+	this->SetActorRotation(FRotator(0, int(_Rotation) * 90, 0));
+	if (_Rotation >= PlaceableRotation::FORWARD && _Rotation <= PlaceableRotation::LEFT) {
+		Rotation = _Rotation;
+	}
 }
 
 // Called when the game starts or when spawned

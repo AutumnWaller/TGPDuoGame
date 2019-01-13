@@ -37,8 +37,12 @@ public:
 
 	SpawnableInfo* GetItemInSlot(uint32 _Slot) {	return Contents[_Slot]; };
 	SpawnableInfo* GetSpawnableByName(FString _Name);
+	bool GiveItem(SpawnableInfo* _Item, UINT32 amount);
 	bool GiveItem(SpawnableInfo* _Item);
+	bool GiveItem(FString _Name, UINT32 amount);
 	bool GiveItem(FString _Name);
+	bool RemoveItem(int Index, UINT32 amount);
 	bool RemoveItem(int Index);
+	bool RemoveItem(FString _Name, UINT32 amount);
 	bool RemoveItem(FString _Name);
 };

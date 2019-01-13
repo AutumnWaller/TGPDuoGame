@@ -45,12 +45,6 @@ class ATGPDuoCharacter : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 		class UMotionControllerComponent* L_MotionController;
 
-	class APlayerInventory* Inventory;
-
-	class APlaceable * GhostPlaceable;
-
-	class AWorldManager * WorldManager;
-
 	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	//class InventoryItem* Equipped;
 
@@ -98,10 +92,11 @@ protected:
 	/** Fires a projectile. */
 	void OnFire();
 
+	void OnRelease();
+
 	UFUNCTION(BlueprintCallable)
 		void OnScroll(float AxisValue);
 
-	void UpdateInventorySlot();
 
 	/** Brings up context menu */
 	void OnContextMenu();
@@ -114,6 +109,9 @@ protected:
 
 	/** Handles stafing movement, left and right */
 	void MoveRight(float Val);
+
+	void StartSprint();
+	void StopSprint();
 
 	/**
 	 * Called via input to turn at a given rate.
@@ -137,10 +135,20 @@ protected:
 	int InventoryItemRotation = 0; //0 to 3
 	float RotationAnimation = 0; //wants to be 0
 	bool rotating = false;
-
+	bool Firing = false;
+	bool Sprinting = false;
+	float WalkSpeed = 600;
+	float SprintSpeed = WalkSpeed * 3;
+	bool SingleFire = true;
+	FVector2D ConveyorInfluence = FVector2D(0,0);
 	void RotateClockWise();
 
 	void RotateCounterClockWise();
+
+	void RestrictMovement();
+	void InteractWithConveyors(float DeltaTime);
+
+	void ToggleSingleFire();
 
 public:
 	/** Returns Mesh1P subobject **/
@@ -156,6 +164,12 @@ public:
 
 	void UpdateEquipped();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+		class APlayerInventory* Inventory;
+
+	class APlaceable * GhostPlaceable;
+
+	class AWorldManager * WorldManager;
 
 
 

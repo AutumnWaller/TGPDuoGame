@@ -26,6 +26,8 @@ enum class ConveyorAngle : uint8 {
 	RIGHT
 };
 
+
+
 UENUM(BlueprintType)
 enum class ConveyorJoin : uint8 {
 	SINGLE,
@@ -50,17 +52,15 @@ public:
 	AConveyor();
 
 	virtual void Update(float DeltaTime) override;
-
-	void Push(float DeltaTime);
 	
 	void SetType(ConveyorType _Type);
 	void SetAngle(ConveyorAngle _Angle);
 	void SetJoin(ConveyorJoin _Join);
 	void Set(ConveyorType _Type = ConveyorType::SLOW, ConveyorAngle _Angle = ConveyorAngle::STRAIGHT, ConveyorJoin _Join = ConveyorJoin::SINGLE);
 	UFUNCTION(BlueprintCallable)
-	ConveyorType GetType() { return Type; }
+		ConveyorType GetType() { return Type; }
 	UFUNCTION(BlueprintCallable)
-	ConveyorAngle GetAngle() { return Angle; }
+		ConveyorAngle GetAngle() { return Angle; }
 	UFUNCTION(BlueprintCallable)
-	ConveyorJoin GetJoin() { return Join; }
+		ConveyorJoin GetJoin() { return Join; }
 };

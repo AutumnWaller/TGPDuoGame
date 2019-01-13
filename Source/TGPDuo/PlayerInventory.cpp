@@ -21,10 +21,8 @@ APlayerInventory::APlayerInventory()
 void APlayerInventory::BeginPlay()
 {
 	Super::BeginPlay();
-	GiveItem("Conveyor");
-	GiveItem("Conveyor");
-	GiveItem("Conveyor");
-	GiveItem("Assembler");
+	GiveItem("Conveyor", 50);
+	GiveItem("Assembler", 50);
 	//GiveItem(Spawnables::GetSpawnable(0));
 }
 
@@ -50,7 +48,8 @@ bool APlayerInventory::Scroll(int Amount) {
 		int currentSlot = ActiveInventorySlot;
 		int newvalue = ActiveInventorySlot + Amount;
 		ActiveInventorySlot = FMath::Clamp(newvalue, 0, MaxInventorySlots);
-		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(currentSlot));
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::FromInt(currentSlot));
 
 		if (currentSlot != ActiveInventorySlot) {
 
@@ -73,27 +72,36 @@ SpawnableInfo * APlayerInventory::GetSpawnableByName(FString _Name)
 	return nullptr;
 }
 
-bool APlayerInventory::GiveItem(SpawnableInfo* _Item)
+bool APlayerInventory::GiveItem(SpawnableInfo * _Item, UINT32 amount)
 {
 	for (int i = 0; i < MaxInventorySlots; i++) {
-		for (int j = 0; j < MaxInventorySlots; j++) {
-			if (GetItemInSlot(j)->ItemName == _Item->ItemName) {
-				if (Contents[j]->Amount <= _Item->MaxStackSize) {
-					SpawnableInfo* NewItem = _Item;
-					NewItem->Amount = Contents[j]->Amount + 1;
-					delete Contents[j];
-					Contents.RemoveAt(j);
-					Contents.Insert(NewItem, j);
-					GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, (L"Item Given: " + FString::FromInt(NewItem->Amount)));
-
+		if (Contents.IsValidIndex(i)) {
+			if (Contents[i]->ItemName == _Item->ItemName) {
+				if (Contents[i]->Amount + amount <= _Item->MaxStackSize) {
+					//SpawnableInfo* NewItem = _Item;
+					Contents[i]->Amount += amount;
+					//Contents[i]->Amount += amount;
+					//delete Contents[i];
+					//Contents.RemoveAt(i);
+					//Contents.Insert(NewItem, i);
+					if (GEngine)
+						GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, (L"amount left: " + FString::FromInt(Contents[i]->Amount)));
 					return true;
 				}
 			}
+		} else {
+			//broken slot?, unlikely, but fill with empty
 		}
+	}
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, (L"No item found, Gave New."));
+	//no slot was found
+	for (int i = 0; i < MaxInventorySlots; i++) {
 		if (GetItemInSlot(i)->ItemName == "Empty") {
 			delete Contents[i];
 			Contents.RemoveAt(i);
 			Contents.Insert(_Item, i);
+			Contents[i]->Amount = amount;
 			return true;
 
 		}
@@ -101,12 +109,22 @@ bool APlayerInventory::GiveItem(SpawnableInfo* _Item)
 	return false;
 }
 
-bool APlayerInventory::GiveItem(FString _Name)
+bool APlayerInventory::GiveItem(SpawnableInfo* _Item)
 {
-	return GiveItem(GetSpawnableByName(_Name));
+	return GiveItem(_Item, 1);
 }
 
-bool APlayerInventory::RemoveItem(int Index)
+bool APlayerInventory::GiveItem(FString _Name, UINT32 amount)
+{
+	return GiveItem(GetSpawnableByName(_Name), amount);
+}
+
+bool APlayerInventory::GiveItem(FString _Name)
+{
+	return GiveItem(_Name, 1);
+}
+
+bool APlayerInventory::RemoveItem(int Index, UINT32 amount)
 {
 	delete Contents[Index];
 	Contents.RemoveAt(Index);
@@ -114,14 +132,24 @@ bool APlayerInventory::RemoveItem(int Index)
 	return true;
 }
 
-bool APlayerInventory::RemoveItem(FString _Name)
+bool APlayerInventory::RemoveItem(int Index)
+{
+	return RemoveItem(Index, 1);
+}
+
+bool APlayerInventory::RemoveItem(FString _Name, UINT32 amount)
 {
 	for (int i = 0; i < MaxInventorySlots; i++) {
 		if (Contents[i]->ItemName == _Name) {
-			RemoveItem(i);
+			RemoveItem(i, amount);
 			return true;
 		}
 	}
 	return false;
+}
+
+bool APlayerInventory::RemoveItem(FString _Name)
+{
+	return RemoveItem(_Name, 1);
 }
 

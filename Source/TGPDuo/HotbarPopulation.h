@@ -17,9 +17,14 @@ class TGPDUO_API UHotbarPopulation : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-		APlayerInventory* Inventory;
+		UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+		APlayerInventory* Inventory = nullptr;
+		APlayerInventory* PlaceholderInventory = nullptr;
 		UFUNCTION(BlueprintCallable)
 		void Initialise();
+
+		UFUNCTION(BlueprintCallable)
+		void GetInventory();
 	
 		UFUNCTION(BlueprintCallable)
 		bool IsMatchingData(FString _Name);

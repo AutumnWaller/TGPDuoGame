@@ -9,30 +9,19 @@ AConveyor::AConveyor()
 	Size = FVector(1, 1, 0);
 
 
-
-	DefaultComponent = CreateDefaultSubobject<UMeshComponent>(TEXT("RootComponent"));
+	/*DefaultComponent = CreateDefaultSubobject<UMeshComponent>(TEXT("RootComponent"));
 	DefaultComponent->RegisterComponent();
 	MovementBox = CreateDefaultSubobject<UBoxComponent>(TEXT("MovementBox"));
 	MovementBox->SetupAttachment(DefaultComponent);
 	MovementBox->SetRelativeLocation(FVector(0, 0, 50));
 	MovementBox->SetWorldRotation(FQuat(0, 0, -90, 0));
 	MovementBox->SetRelativeScale3D(FVector(1.5f, 1.5f, 0.75f));
-	MovementBox->RegisterComponent();
+	MovementBox->RegisterComponent();*/
 }
 
 void AConveyor::Update(float DeltaTime) {
 	APlaceable::Update(DeltaTime);
-	Push(DeltaTime);
-}
-void AConveyor::Push(float DeltaTime)
-{
-	TArray<AActor*> actorArr;
-	this->MovementBox->GetOverlappingActors(actorArr, TSubclassOf<ACharacter>());
-
-	for(int i = 0; i < actorArr.Num(); i++)
-	{
-		actorArr[i]->AddActorWorldOffset(GetActorForwardVector() * Speed * DeltaTime);
-	}
+	//Push(DeltaTime);
 }
 
 void AConveyor::SetType(ConveyorType _Type)
